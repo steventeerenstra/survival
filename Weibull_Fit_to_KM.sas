@@ -34,13 +34,15 @@ median2=(log(2)/b2 )**(1/k);
 diff_median=median1-median2;
 relative_diff=diff_median/median1;
 run;
-* expected medians
+* expected medians;
 proc print data=survival(obs=1); var median1 median2 diff_median relative_diff;run;
+
+
 * expectedsurvival estimates;
-proc print data=median(where=( t in (6,12,18,24,36,48) )) ; var t S S2;run;
+proc print data=survival(where=( t in (6,12,18,24,36,48) )) ; var t S S2;run;
 
 **expected number of events given a sample size;
-data n_events; set median; 
+data n_events; set survival; 
 n1=300; n2=300;
 e1=(1-S)*n1; e2=(1-S2)*n2;
 e=e1+e2;
