@@ -163,20 +163,22 @@ proc print;run;
 
 *** example of power calculation based on effect;
 ***  in change of survival rate at a landmark;
-*** or in a change of medians;
+*** or in a change of medians or median and hazard ratio of course;
 *input: expected survival rate in control arm S_c and intervention arm S_i ;
 *       at the landmark;
 *       accrual time accr, follow-up after last patient recruited fu;
 *       number of patients to be recruited in ctl arm (n_ctl) and in intv arm (n_intv); 
-data a;
+data config;
+input landmark surv_ctl_landmark surv_intv_landmark n_ctl n_intv accrual fu;
+datalines;
+12	0.4	0.5	80	80	36	6
+12	0.4	0.55 80	80	36	6
+12	0.4	0.6	70	70	36	6
+;
+run;
+
+data a;set config;
 alpha=0.05; *two-sided alpha;
-landmark=12;
-Surv_ctl_landmark=0.5;
-surv_intv_landmark=0.7;
-n_ctl=160/2;
-n_intv=160/2;
-accrual=3*12;
-fu=2;
 * calculate the hazard rates in each arm and hazard ratio;
 hrate_ctl= -log(surv_ctl_landmark)/landmark;
 hrate_intv= -log(surv_intv_landmark)/landmark;
@@ -201,5 +203,17 @@ se=1/sqrt(theta*(1-theta)*events);
 power=probnorm( abs(log(hr))/se - probit(1-alpha/2) );
 run;
 
-proc print;run;
+proc format;
+value powerfmt
+low -<0.70 = 'lightgray'
+0.70-<0.79 = 'lightgreen'
+0.79-high = 'green'
+;
+run;
+proc tabulate data=a; var power;by landmark;
+class surv_ctl_landmark surv_intv_landmark n_ctl n_intv accrual fu;
+table surv_ctl_landmark*surv_intv_landmark*n_ctl*n_intv,accrual*fu*power=' '*mean=' '*[style=[background=powerfmt.]];
+run;
+
+
 
