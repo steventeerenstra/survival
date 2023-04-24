@@ -159,3 +159,47 @@ d=( probit(1-alpha/2) + probit(1-beta) )**2  / ( delta**2 * theta * (1-theta)) ;
 run;
 
 proc print;run;
+
+
+*** example of power calculation based on effect;
+***  in change of survival rate at a landmark;
+*** or in a change of medians;
+*input: expected survival rate in control arm S_c and intervention arm S_i ;
+*       at the landmark;
+*       accrual time accr, follow-up after last patient recruited fu;
+*       number of patients to be recruited in ctl arm (n_ctl) and in intv arm (n_intv); 
+data a;
+alpha=0.05; *two-sided alpha;
+landmark=12;
+Surv_ctl_landmark=0.5;
+surv_intv_landmark=0.7;
+n_ctl=160/2;
+n_intv=160/2;
+accrual=3*12;
+fu=2;
+* calculate the hazard rates in each arm and hazard ratio;
+hrate_ctl= -log(surv_ctl_landmark)/landmark;
+hrate_intv= -log(surv_intv_landmark)/landmark;
+/** alternative in terms of change in medians;
+hrate_ctl= -log(0.5)/median_ctl;
+hrate_intv= -log(0.5)/median_intv;
+**/
+hr=hrate_intv/hrate_ctl;
+median_ctl=-log(0.5)/hrate_ctl;
+median_intv=-log(0.5)/hrate_intv;
+*estimate the expected number of events in ctl arm at accrual+fu;
+proportiondeaths_ctl=(	exp(-hrate_ctl*fu) -  exp(-hrate_ctl*(accrual+fu))	) / (hrate_ctl*accrual);
+events_ctl=n_ctl*(1- proportiondeaths_ctl);
+* idem in intv arm;
+proportiondeaths_intv=(	exp(-hrate_intv*fu) -  exp(-hrate_intv*(accrual+fu))	) / (hrate_intv*accrual);
+events_intv=n_intv*(1- proportiondeaths_intv);
+* se of logrank test; 
+events=events_ctl+events_intv;
+theta= n_intv/(n_intv+n_ctl);
+se=1/sqrt(theta*(1-theta)*events);
+* power of the logrank test for the hr;
+power=probnorm( abs(log(hr))/se - probit(1-alpha/2) );
+run;
+
+proc print;run;
+
