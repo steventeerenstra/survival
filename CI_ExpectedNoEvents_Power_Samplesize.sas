@@ -206,8 +206,8 @@ run;
 proc format;
 value powerfmt
 low -<0.70 = 'lightgray'
-0.70-<0.79 = 'lightgreen'
-0.79-high = 'green'
+0.70-<0.79 = 'green'
+0.79-high = 'lightgreen'
 ;
 run;
 proc tabulate data=a; var power;by landmark;
